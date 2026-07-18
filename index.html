@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vasudha</title>
+<style>
+  *, *::after, *::before {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  /* Colorful sky background instead of black night */
+  .sky {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg,
+      #ff9a9e 0%,
+      #fad0c4 15%,
+      #fbc2eb 30%,
+      #a6c1ee 55%,
+      #84fab0 80%,
+      #8fd3f4 100%);
+  }
+
+  /* soft drifting clouds for depth */
+  .cloud {
+    position: absolute;
+    background: rgba(255,255,255,0.55);
+    border-radius: 50%;
+    filter: blur(2px);
+    animation: drift linear infinite;
+  }
+  .cloud--1 { width: 18vmin; height: 6vmin; top: 12%; left: -20vmin; animation-duration: 40s; }
+  .cloud--2 { width: 25vmin; height: 8vmin; top: 25%; left: -30vmin; animation-duration: 55s; animation-delay: -10s; }
+  .cloud--3 { width: 14vmin; height: 5vmin; top: 8%; left: -15vmin; animation-duration: 33s; animation-delay: -20s; }
+
+  @keyframes drift {
+    from { transform: translateX(0); }
+    to { transform: translateX(140vw); }
+  }
+
+  .title {
+    position: absolute;
+    top: 0;
+    left: 0;
+    color: #ffffff;
+    font-family: 'Courier New', Courier, monospace;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-content: center;
+    align-items: center;
+    width: 100%;
+    height: 45vh;
+    text-shadow: 0 0 20px rgba(255,255,255,0.9), 0 2px 6px rgba(0,0,0,0.25);
+    letter-spacing: 0px;
+    z-index: 20;
+    font-size: 6vmin;
+    font-weight: bold;
+  }
+
+  @media (min-width: 500px) {
+    .title { letter-spacing: 15px; }
+  }
+
+  @keyframes typing {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .title span {
+    opacity: 0;
+    animation: typing 1s ease forwards;
+    animation-delay: var(--delay);
+  }
+
+  /* Real butterfly, drawn in SVG so it always renders (no emoji font dependency) */
+  .butterfly {
+    position: absolute;
+    width: 9vmin;
+    height: 9vmin;
+    z-index: 50;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+    animation-name: fly-butterfly;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+
+  .butterfly-orient {
+    width: 100%;
+    height: 100%;
+    transform: rotate(90deg);
+  }
+
+  .butterfly svg {
+    width: 100%;
+    height: 100%;
+    animation: flutter 0.3s ease-in-out infinite alternate;
+    transform-origin: center;
+  }
+
+  .butterfly--1 { bottom: 55vmin; left: -10vmin; animation-duration: 14s; }
+  .butterfly--2 { bottom: 30vmin; left: -10vmin; animation-duration: 18s; animation-delay: -4s; }
+  .butterfly--3 { bottom: 42vmin; left: -10vmin; animation-duration: 16s; animation-delay: -8s; }
+
+  .butterfly--1 svg .wing { fill: #ff6b9d; }
+  .butterfly--1 svg .wing-inner { fill: #ffd166; }
+  .butterfly--2 svg .wing { fill: #6bc5ff; }
+  .butterfly--2 svg .wing-inner { fill: #b6f542; }
+  .butterfly--3 svg .wing { fill: #c084fc; }
+  .butterfly--3 svg .wing-inner { fill: #ff9a3c; }
+
+  @keyframes fly-butterfly {
+    0%   { transform: translate(0, 0); }
+    20%  { transform: translate(30vw, -8vmin); }
+    40%  { transform: translate(60vw, 4vmin); }
+    60%  { transform: translate(90vw, -6vmin); }
+    80%  { transform: translate(115vw, 3vmin); }
+    100% { transform: translate(140vw, 0); }
+  }
+
+  @keyframes flutter {
+    from { transform: scaleX(1) rotate(-4deg); }
+    to   { transform: scaleX(0.7) rotate(4deg); }
+  }
+
+  /* Garden / grass strip at the bottom */
+  .garden {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 18vh;
+    background: linear-gradient(180deg, #6bbf59 0%, #3f9142 60%, #2e6e33 100%);
+    display: flex;
+    align-items: flex-end;
+    z-index: 10;
+  }
+
+  .grass {
+    width: 4vmin;
+    height: 10vmin;
+    background: #2e8b3d;
+    margin: 0 0.5vmin;
+    border-radius: 50% 50% 0 0;
+    transform-origin: bottom center;
+    animation: sway 2.5s ease-in-out infinite alternate;
+  }
+  .grass:nth-child(odd) { animation-delay: -1s; height: 12vmin; background: #35a047; }
+  .grass:nth-child(3n) { height: 8vmin; background: #257a34; }
+
+  @keyframes sway {
+    from { transform: rotate(-4deg); }
+    to   { transform: rotate(4deg); }
+  }
+
+  /* Simple flowers dotted along the garden */
+  .flower-emoji {
+    position: absolute;
+    bottom: 14vh;
+    font-size: 4vmin;
+    animation: sway 3s ease-in-out infinite alternate;
+  }
+
+  /* Next button */
+  .next-btn {
+     position: fixed;
+  bottom: 30px;
+  right: 30px;
+  padding: 12px 25px;
+  border: 2px solid white;
+  border-radius: 30px;
+  background: transparent;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  z-index: 9999;
+  }
+  /* .next-btn:hover {
+      background: #ff1493;
+  } */
+
+  @keyframes fade-in-btn {
+    to { opacity: 1; pointer-events: auto; }
+  }
+
+  /* Page 1 wrapper fades out when Next is clicked */
+  .page-1 {
+    transition: opacity 0.8s ease;
+  }
+  .page-1.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* Page 2: revealed after Next */
+  .page-2 {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.8s ease;
+    background: #000;
+  }
+  .page-2.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+</style>
+</head>
+<body>
+  <!-- Page 1 -->
+  <div class="page-1" id="page-1">
+    <div class="sky"></div>
+    <div class="cloud cloud--1"></div>
+    <div class="cloud cloud--2"></div>
+    <div class="cloud cloud--3"></div>
+
+    <!-- Real butterflies, drawn as SVG shapes (wings + body + antennae) -->
+    <div class="butterfly butterfly--1">
+      <div class="butterfly-orient"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <path class="wing" d="M50 50 C 20 10, 0 20, 5 45 C 8 60, 30 60, 50 50 Z"/>
+        <path class="wing" d="M50 50 C 80 10, 100 20, 95 45 C 92 60, 70 60, 50 50 Z"/>
+        <path class="wing-inner" d="M50 50 C 30 25, 15 30, 18 45 C 20 52, 35 54, 50 50 Z"/>
+        <path class="wing-inner" d="M50 50 C 70 25, 85 30, 82 45 C 80 52, 65 54, 50 50 Z"/>
+        <path class="wing" d="M50 55 C 25 70, 10 65, 12 82 C 14 92, 32 88, 50 62 Z"/>
+        <path class="wing" d="M50 55 C 75 70, 90 65, 88 82 C 86 92, 68 88, 50 62 Z"/>
+        <ellipse cx="50" cy="55" rx="3" ry="18" fill="#3a2a1a"/>
+        <circle cx="50" cy="38" r="4" fill="#3a2a1a"/>
+        <line x1="48" y1="35" x2="42" y2="26" stroke="#3a2a1a" stroke-width="1.5"/>
+        <line x1="52" y1="35" x2="58" y2="26" stroke="#3a2a1a" stroke-width="1.5"/>
+      </svg></div>
+    </div>
+    <div class="butterfly butterfly--2">
+      <div class="butterfly-orient"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <path class="wing" d="M50 50 C 20 10, 0 20, 5 45 C 8 60, 30 60, 50 50 Z"/>
+        <path class="wing" d="M50 50 C 80 10, 100 20, 95 45 C 92 60, 70 60, 50 50 Z"/>
+        <path class="wing-inner" d="M50 50 C 30 25, 15 30, 18 45 C 20 52, 35 54, 50 50 Z"/>
+        <path class="wing-inner" d="M50 50 C 70 25, 85 30, 82 45 C 80 52, 65 54, 50 50 Z"/>
+        <path class="wing" d="M50 55 C 25 70, 10 65, 12 82 C 14 92, 32 88, 50 62 Z"/>
+        <path class="wing" d="M50 55 C 75 70, 90 65, 88 82 C 86 92, 68 88, 50 62 Z"/>
+        <ellipse cx="50" cy="55" rx="3" ry="18" fill="#3a2a1a"/>
+        <circle cx="50" cy="38" r="4" fill="#3a2a1a"/>
+        <line x1="48" y1="35" x2="42" y2="26" stroke="#3a2a1a" stroke-width="1.5"/>
+        <line x1="52" y1="35" x2="58" y2="26" stroke="#3a2a1a" stroke-width="1.5"/>
+      </svg></div>
+    </div>
+    <div class="butterfly butterfly--3">
+      <div class="butterfly-orient"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <path class="wing" d="M50 50 C 20 10, 0 20, 5 45 C 8 60, 30 60, 50 50 Z"/>
+        <path class="wing" d="M50 50 C 80 10, 100 20, 95 45 C 92 60, 70 60, 50 50 Z"/>
+        <path class="wing-inner" d="M50 50 C 30 25, 15 30, 18 45 C 20 52, 35 54, 50 50 Z"/>
+        <path class="wing-inner" d="M50 50 C 70 25, 85 30, 82 45 C 80 52, 65 54, 50 50 Z"/>
+        <path class="wing" d="M50 55 C 25 70, 10 65, 12 82 C 14 92, 32 88, 50 62 Z"/>
+        <path class="wing" d="M50 55 C 75 70, 90 65, 88 82 C 86 92, 68 88, 50 62 Z"/>
+        <ellipse cx="50" cy="55" rx="3" ry="18" fill="#3a2a1a"/>
+        <circle cx="50" cy="38" r="4" fill="#3a2a1a"/>
+        <line x1="48" y1="35" x2="42" y2="26" stroke="#3a2a1a" stroke-width="1.5"/>
+        <line x1="52" y1="35" x2="58" y2="26" stroke="#3a2a1a" stroke-width="1.5"/>
+      </svg></div>
+    </div>
+
+    <!-- Garden with flowers -->
+    <div class="garden">
+      <div class="grass"></div><div class="grass"></div><div class="grass"></div>
+      <div class="grass"></div><div class="grass"></div><div class="grass"></div>
+      <div class="grass"></div><div class="grass"></div><div class="grass"></div>
+      <div class="grass"></div><div class="grass"></div><div class="grass"></div>
+      <div class="grass"></div><div class="grass"></div><div class="grass"></div>
+      <div class="grass"></div><div class="grass"></div><div class="grass"></div>
+    </div>
+    <div class="flower-emoji" style="left:8%;">🌸</div>
+    <div class="flower-emoji" style="left:22%;">🌼</div>
+    <div class="flower-emoji" style="left:40%;">🌺</div>
+    <div class="flower-emoji" style="left:58%;">🌻</div>
+    <div class="flower-emoji" style="left:74%;">🌸</div>
+    <div class="flower-emoji" style="left:88%;">🌼</div>
+
+    <!-- Title -->
+    <h1 class="title"><span id="title"></span></h1>
+  </div>
+
+  <button class="next-btn" id="nextBtn">Next Surprise 🌸</button>
+
+  <!-- Page 2: envelope with love notes -->
+  <div class="page-2" id="page-2">
+    <iframe id="page2Frame" title="Envelope" style="width:100%;height:100%;border:0;display:block;"></iframe>
+  </div>
+
+  <script>
+    window.onload = () => {
+      setTimeout(() => {
+        const text = 'Vasudha mam..';
+        const titleElement = document.getElementById('title');
+        let index = 0;
+        function appendTitle() {
+          if (index < text.length) {
+            const span = document.createElement('span');
+            span.textContent = text[index];
+            span.style.setProperty('--delay', (index * 0.05) + 's');
+            titleElement.appendChild(span);
+            index++;
+            setTimeout(appendTitle, 300);
+          }
+        }
+        appendTitle();
+      }, 500);
+    };
+
+    // Next button: load the envelope page into the iframe and cross-fade
+    document.getElementById('nextBtn').addEventListener('click', () => {
+      document.getElementById('page2Frame').srcdoc = page2Html;
+      document.getElementById('page-1').classList.add('hidden');
+      document.getElementById('page-2').classList.add('visible');
+        document.getElementById('nextBtn').style.display = 'none';
+    });
+
+    const page2Html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+*, *::before, *::after {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+html, body {
+  height: 100%;
+}
+body {
+  width: 100%;
+  background-color: #000;
+  font-size: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+@media (max-height: 500px) {
+  body { margin: 25% 0 25% 0; }
+}
+.envelop {
+  width: 15rem;
+  height: 10rem;
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: auto;
+}
+@media (min-width: 400px) and (max-width: 600px) {
+  .envelop { width: 20rem; height: 15rem; }
+}
+@media (min-width: 600px) {
+  .envelop { width: 25rem; height: 20rem; }
+}
+@media (min-width: 600px) and (min-height: 600px) {
+  .envelop { bottom: 20%; }
+}
+.envelop__front-paper {
+  width: 100%; height: 100%; bottom: 0; left: 0; position: absolute;
+  border-radius: 0.7rem;
+  border: 0.35rem solid #967b5c;
+  background-color: #ba9872;
+  clip-path: polygon(100% 0%, 50% 70%, 0% 0%, 0% 100%, 100% 100%);
+  z-index: 300;
+}
+.envelop__back-paper {
+  width: 100%; height: 100%; bottom: 0; left: 0; position: absolute;
+  border-radius: 0.7rem;
+  background-color: #967b5c;
+  clip-path: polygon(0% 0%, 100% 0%, 90% 100%, 0% 90%);
+  z-index: 100;
+}
+.envelop__up-paper {
+  width: 100%; height: 100%; bottom: 0; left: 0; position: relative;
+  border-radius: 0.7rem;
+  background-color: #967b5c;
+  z-index: 400;
+  clip-path: polygon(0% 0%, 100% 0%, 50% 81%);
+}
+.envelop__sticker {
+  width: 100%;
+  height: 20%;
+  position: absolute;
+  margin: auto;
+  top: 30%;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  z-index: 400;
+  background-image: url("https://www.freepnglogos.com/uploads/heart-png/emoji-heart-33.png");
+  background-color: #f9f9f9;
+  border: 0.3rem solid #e2e2e2;
+  background-size: 2rem;
+  background-position: center;
+}
+@media (max-width: 400px) {
+  .envelop__sticker { background-size: 1.2rem; }
+}
+@media (min-width: 600px) {
+  .envelop__sticker { height: 15%; }
+}
+.envelop__false-sticker {
+  width: 20%;
+  height: 20%;
+  position: absolute;
+  margin: auto;
+  top: 30%;
+  left: 80%;
+  bottom: 0;
+  right: 0;
+  z-index: 300;
+  background-image: url("https://www.freepnglogos.com/uploads/heart-png/emoji-heart-33.png");
+  background-color: #f9f9f9;
+  border: 0.3rem solid #e2e2e2;
+  background-size: 2rem;
+  background-position: center;
+}
+@media (max-width: 400px) {
+  .envelop__false-sticker { background-size: 1.2rem; }
+}
+@media (min-width: 600px) {
+  .envelop__false-sticker { height: 15%; }
+}
+.envelop__content {
+  width: 100%; height: 100%; bottom: 0; left: 0; position: absolute;
+  z-index: 200;
+}
+.love-notes {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.note {
+  width: 95%;
+  height: 30%;
+  background-color: #f9f9f9;
+  position: absolute;
+  overflow: hidden;
+  transition: height 0.5s, opacity 0.25s;
+  box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.75);
+}
+.note:nth-child(1) { bottom: 60%; }
+.note:nth-child(2) { bottom: 40%; }
+.note:nth-child(3) { bottom: 20%; }
+.note:hover {
+  cursor: pointer;
+  height: 45%;
+}
+.note__text {
+  font-family: "Sofia";
+  padding: 1rem;
+}
+.note__text p {
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+@media (min-width: 300px) and (max-width: 600px) {
+  .note__text p { font-size: 1.025rem; }
+}
+@media (min-width: 600px) {
+  .note__text p { font-size: 1.15rem; }
+}
+.scissors {
+  cursor: url("https://i.postimg.cc/GtLCdKxR/sisors.png"), pointer;
+}
+.scissors:active {
+  cursor: url("https://i.postimg.cc/GtXQ7WPZ/pngwing-com.png"), pointer;
+}
+.cursor {
+  cursor: pointer;
+}
+#flowerBtn {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  padding: 12px 25px;
+  border: 2px solid white;
+  border-radius: 30px;
+  background: transparent;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  z-index: 9999;
+}
+
+</style>
+</head>
+<body class="scissors">
+  <div class="envelop">
+    <div class="envelop__front-paper"></div>
+    <div class="envelop__back-paper"></div>
+    <div class="envelop__up-paper js-up-paper"></div>
+    <div class="envelop__sticker js-sticker"></div>
+    <div class="envelop__false-sticker"></div>
+    <div class="envelop__content js-envelop-content">
+      <div class="love-notes">
+        <div class="note js-note">
+          <div class="note__text">
+            <p>
+             🌸 तुम्ही फक्त आमचे Team Lead नव्हता, तर आमच्यासाठी एक प्रेरणा होता. तुमच्या मार्गदर्शन, संयम आणि Support बद्दल मनापासून धन्यवाद.
+
+✨ तुमच्याकडून खूप काही शिकायला मिळाले, आणि त्या आठवणी आम्ही नेहमी जपून ठेवू.
+
+❤️ निरोप हा शेवट नसून नव्या सुरुवातीची चाहूल असते. तुमच्या Future साठी मनःपूर्वक शुभेच्छा!
+
+🤍 तुमची Positive Energy आणि हसरा स्वभाव आम्ही खूप Miss करू. All the Best for your new journey! 🌟
+            </p>
+          </div>
+        </div>
+        <div class="note js-note">
+          <div class="note__text">
+            <p>
+                Thank you for माझ्यावर विश्वास ठेवल्याबद्दल आणि मला Professional तसेच Personal पातळीवर घडवण्यासाठी. तुमचे Guidance, Support आणि Encouragement माझ्यासाठी खूप महत्त्वाचे होते.
+
+तुमच्या Leadership अंतर्गत काम करणे हा एक सुंदर Learning Experience होता. तुम्ही दिलेला Confidence आणि शिकवण मी नेहमी सोबत ठेवेन.
+
+तुमच्या नवीन Journey साठी मनःपूर्वक शुभेच्छा. Thank You for everything — आम्ही तुम्हाला खूप Miss करू. 💙
+            </p>
+          </div>
+        </div>
+        <div class="note js-note">
+          <div class="note__text">
+            <p> तुमची Presence, Guidance आणि Positive Energy आम्ही खूप Miss करू. आमच्यासाठी तुम्ही जे काही केले त्याबद्दल मनापासून Thank You.
+
+तुमच्या Future साठी खूप शुभेच्छा. तुम्ही नेहमी आमच्या आठवणीत राहाल, आणि आम्ही तुम्हाला शब्दांपेक्षा जास्त Miss करू. ❤️</p>
+          </div>
+        </div>
+          <button id="flowerBtn">Next Surprise 🌸</button>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"><\/script>
+  <script>
+    let mobile_media_query = window.matchMedia("(max-width: 400px)");
+    let tablet_media_query = window.matchMedia(
+      "(min-width: 400px) and (max-width: 600px)"
+    );
+    const notes = document.querySelectorAll(".js-note");
+
+    function recize_notes() {
+      for (let i = 0; i < notes.length; i++) {
+        if (notes[i].classList.contains("active")) {
+          notes[i].classList.remove("active");
+          gsap.set(notes[i], { height: "30%", clearProps: "all" });
+        }
+      }
+    }
+
+    function notes_ready() {
+      gsap.to(".js-envelop-content", { height: "110%", duration: 0.5 });
+
+      for (let i = 0; i < notes.length; i++) {
+        notes[i].addEventListener("click", function () {
+          if (mobile_media_query.matches) {
+            if (this.classList.contains("active")) {
+              this.classList.remove("active");
+              gsap.set(this, { height: "30%", clearProps: "all" });
+            } else {
+              for (let i = 0; i < notes.length; i++) {
+                if (notes[i].classList.contains("active")) {
+                  notes[i].classList.remove("active");
+                  gsap.set(notes[i], { height: "30%", clearProps: "all" });
+                }
+              }
+              this.classList.add("active");
+              gsap.set(this, { height: 125 + 40 * i + "%" });
+            }
+          } else if (tablet_media_query.matches) {
+            if (this.classList.contains("active")) {
+              this.classList.remove("active");
+              gsap.set(this, { height: "30%", clearProps: "all" });
+            } else {
+              for (let i = 0; i < notes.length; i++) {
+                if (notes[i].classList.contains("active")) {
+                  notes[i].classList.remove("active");
+                  gsap.set(notes[i], { height: "30%", clearProps: "all" });
+                }
+              }
+              this.classList.add("active");
+              gsap.set(this, { height: 80 + 21 * i + "%" });
+            }
+          } else {
+            if (this.classList.contains("active")) {
+              this.classList.remove("active");
+              gsap.set(this, { height: "30%", clearProps: "all" });
+            } else {
+              for (let i = 0; i < notes.length; i++) {
+                if (notes[i].classList.contains("active")) {
+                  notes[i].classList.remove("active");
+                  gsap.set(notes[i], { height: "30%", clearProps: "all" });
+                }
+              }
+              this.classList.add("active");
+              gsap.set(this, { height: 70 + 20 * i + "%" });
+            }
+          }
+        });
+      }
+    }
+
+    function set_up_paper() {
+      var arr = [0, 0, 100, 0, 50, 61];
+      gsap.set(".js-up-paper", {
+        bottom: "97%",
+        rotation: 180,
+        zIndex: 200,
+        clipPath:
+          "polygon(" + arr[0] + "%" + arr[1] + "%," + arr[2] + "%" + arr[3] + "%," + arr[4] + "%" + arr[5] + "%)",
+        onComplete: notes_ready
+      });
+    }
+
+    function envelop_transition() {
+      gsap.to(".js-up-paper", { bottom: "1%", duration: 0.25, onComplete: set_up_paper });
+      document.querySelector(".js-up-paper").removeEventListener("click", envelop_transition);
+      document.querySelector(".js-up-paper").classList.remove("cursor");
+    }
+
+    function sticker() {
+      gsap.set(".js-sticker", { width: "20%", left: "-80%" });
+      document.body.classList.remove("scissors");
+      document.querySelector(".js-sticker").removeEventListener("click", sticker);
+      document.querySelector(".js-up-paper").addEventListener("click", envelop_transition);
+      document.querySelector(".js-up-paper").classList.add("cursor");
+    }
+
+    document.querySelector(".js-sticker").addEventListener("click", sticker);
+
+    
+    document.getElementById("flowerBtn").addEventListener("click", function () {
+    parent.location.href = "flower.html";
+});
+    
+
+
+    window.onresize = function (event) {
+      recize_notes();
+    };
+  <\/script>
+</body>
+</html>`;
+  </script>
+</body>
+</html>
